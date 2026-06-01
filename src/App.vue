@@ -4,6 +4,7 @@ import MenuBar from './components/MenuBar.vue'
 import ToolStrip from './components/ToolStrip.vue'
 import CanvasArea from './components/CanvasArea.vue'
 import ChannelsPanel from './components/ChannelsPanel.vue'
+import ColorInfo from './components/ColorInfo.vue'
 import StatusBar from './components/StatusBar.vue'
 
 const canvasArea = ref(null)
@@ -13,8 +14,9 @@ const cursor = ref({ x: 0, y: 0 })
 const activeTool = ref(null)
 const imageData  = ref(null)
 const availableChannels = ref([])
+const pickedPixel = ref(null)
 
-function onOpen(file) { canvasArea.value?.loadFile(file); activeTool.value = null }
+function onOpen(file) { canvasArea.value?.loadFile(file); activeTool.value = null; pickedPixel.value = null }
 function onSave(format) { canvasArea.value?.saveAs(format) }
 function onMeta(m) { meta.value = m }
 function onZoomChange(z) { zoom.value = z }
@@ -22,7 +24,7 @@ function onCursor(pos) { cursor.value = pos }
 function onStatusZoom(z) { canvasArea.value?.setZoom(z) }
 
 function onImageData(id) {
-  imageData.value = id
+  imageData.value = id; pickedPixel.value = null
   availableChannels.value = detectChannels(id)
 }
 
@@ -38,6 +40,7 @@ function detectChannels(id) {
 }
 
 function onChannelsChange(enabledSet) { canvasArea.value?.applyChannelToggle(enabledSet) }
+function onPixelPick(pixel) { pickedPixel.value = pixel }
 </script>
 
 <template>
@@ -46,12 +49,14 @@ function onChannelsChange(enabledSet) { canvasArea.value?.applyChannelToggle(ena
     <div class="workspace">
       <ToolStrip v-model:activeTool="activeTool" />
       <CanvasArea ref="canvasArea" :tool="activeTool"
-        @meta="onMeta" @zoom-change="onZoomChange" @cursor="onCursor" @imagedata="onImageData" />
+        @meta="onMeta" @zoom-change="onZoomChange" @cursor="onCursor"
+        @imagedata="onImageData" @pixel-pick="onPixelPick" />
       <aside class="sidebar">
         <header class="inspector-header"><span>Инспектор</span></header>
         <div class="inspector-body">
           <ChannelsPanel v-if="imageData" :imageData="imageData"
             :availableChannels="availableChannels" @change="onChannelsChange" />
+          <ColorInfo :pixel="pickedPixel" :isActive="activeTool === 'eyedropper'" />
         </div>
       </aside>
     </div>
