@@ -6,8 +6,11 @@ import CanvasArea from './components/CanvasArea.vue'
 import ChannelsPanel from './components/ChannelsPanel.vue'
 import ColorInfo from './components/ColorInfo.vue'
 import StatusBar from './components/StatusBar.vue'
+import LevelsDialog from './components/LevelsDialog.vue'
+import { applyLevels } from './utils/levels.js'
 
-const canvasArea = ref(null)
+const canvasArea   = ref(null)
+const levelsDialog = ref(null)
 const meta   = ref({ filename: '', width: 0, height: 0, colorDepth: '' })
 const zoom   = ref(1)
 const cursor = ref({ x: 0, y: 0 })
@@ -15,6 +18,7 @@ const activeTool = ref(null)
 const imageData  = ref(null)
 const availableChannels = ref([])
 const pickedPixel = ref(null)
+const snapshot    = ref(null)
 
 function onOpen(file) { canvasArea.value?.loadFile(file); activeTool.value = null; pickedPixel.value = null }
 function onSave(format) { canvasArea.value?.saveAs(format) }
@@ -41,13 +45,41 @@ function detectChannels(id) {
 
 function onChannelsChange(enabledSet) { canvasArea.value?.applyChannelToggle(enabledSet) }
 function onPixelPick(pixel) { pickedPixel.value = pixel }
+
+function openLevels() {
+  if (!imageData.value) return
+  snapshot.value = new ImageData(new Uint8ClampedArray(imageData.value.data), imageData.value.width, imageData.value.height)
+  levelsDialog.value?.open(snapshot.value)
+}
+
+function onLevelsPreview(s) {
+  if (!snapshot.value) return
+  canvasArea.value?.putImageData(applyLevels(snapshot.value, s))
+}
+
+function onLevelsRestore() {
+  if (snapshot.value) canvasArea.value?.putImageData(snapshot.value)
+}
+
+function onLevelsApply(s) {
+  if (!snapshot.value) return
+  const result = applyLevels(snapshot.value, s)
+  canvasArea.value?.commitImageData(result)
+  imageData.value = result
+  availableChannels.value = detectChannels(result)
+  snapshot.value = null
+}
+
+function onLevelsCancel() {
+  if (snapshot.value) { canvasArea.value?.putImageData(snapshot.value); snapshot.value = null }
+}
 </script>
 
 <template>
   <div class="app">
     <MenuBar @open="onOpen" @save="onSave" />
     <div class="workspace">
-      <ToolStrip v-model:activeTool="activeTool" />
+      <ToolStrip v-model:activeTool="activeTool" @levels="openLevels" />
       <CanvasArea ref="canvasArea" :tool="activeTool"
         @meta="onMeta" @zoom-change="onZoomChange" @cursor="onCursor"
         @imagedata="onImageData" @pixel-pick="onPixelPick" />
@@ -61,6 +93,9 @@ function onPixelPick(pixel) { pickedPixel.value = pixel }
       </aside>
     </div>
     <StatusBar :meta="meta" :zoom="zoom" :cursor="cursor" @zoom-change="onStatusZoom" />
+    <LevelsDialog ref="levelsDialog" :availableChannels="availableChannels"
+      @preview="onLevelsPreview" @restore="onLevelsRestore"
+      @apply="onLevelsApply" @cancel="onLevelsCancel" />
   </div>
 </template>
 
