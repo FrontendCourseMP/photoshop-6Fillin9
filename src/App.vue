@@ -8,12 +8,14 @@ import ColorInfo from './components/ColorInfo.vue'
 import StatusBar from './components/StatusBar.vue'
 import LevelsDialog from './components/LevelsDialog.vue'
 import ResizeDialog from './components/ResizeDialog.vue'
+import ConvolutionDialog from './components/ConvolutionDialog.vue'
 import { applyLevels } from './utils/levels.js'
 import { resizeImage } from './utils/interpolation.js'
 
-const canvasArea    = ref(null)
-const levelsDialog  = ref(null)
-const resizeDialog  = ref(null)
+const canvasArea         = ref(null)
+const levelsDialog       = ref(null)
+const resizeDialog       = ref(null)
+const convolutionDialog  = ref(null)
 const meta          = ref({ filename: '', width: 0, height: 0, colorDepth: '' })
 const zoom          = ref(1)
 const cursor        = ref({ x: 0, y: 0 })
@@ -90,13 +92,33 @@ function onResize({ width, height, method }) {
   availableChannels.value = detectChannels(result)
   meta.value = { ...meta.value, width: result.width, height: result.height }
 }
+
+function openFilter() {
+  if (!imageData.value) return
+  snapshot.value = new ImageData(new Uint8ClampedArray(imageData.value.data), imageData.value.width, imageData.value.height)
+  convolutionDialog.value?.open(snapshot.value)
+}
+
+function onFilterPreview(result) { canvasArea.value?.putImageData(result) }
+function onFilterRestore() { if (snapshot.value) canvasArea.value?.putImageData(snapshot.value) }
+
+function onFilterApply(result) {
+  canvasArea.value?.commitImageData(result)
+  imageData.value = result
+  availableChannels.value = detectChannels(result)
+  snapshot.value = null
+}
+
+function onFilterCancel() {
+  if (snapshot.value) { canvasArea.value?.putImageData(snapshot.value); snapshot.value = null }
+}
 </script>
 
 <template>
   <div class="app">
     <MenuBar @open="onOpen" @save="onSave" />
     <div class="workspace">
-      <ToolStrip v-model:activeTool="activeTool" @levels="openLevels" @resize="openResize" />
+      <ToolStrip v-model:activeTool="activeTool" @levels="openLevels" @resize="openResize" @filter="openFilter" />
       <CanvasArea ref="canvasArea" :tool="activeTool"
         @meta="onMeta" @zoom-change="onZoomChange" @cursor="onCursor"
         @imagedata="onImageData" @pixel-pick="onPixelPick" />
@@ -114,6 +136,9 @@ function onResize({ width, height, method }) {
       @preview="onLevelsPreview" @restore="onLevelsRestore"
       @apply="onLevelsApply" @cancel="onLevelsCancel" />
     <ResizeDialog ref="resizeDialog" @resize="onResize" @cancel="() => {}" />
+    <ConvolutionDialog ref="convolutionDialog" :availableChannels="availableChannels"
+      @preview="onFilterPreview" @restore="onFilterRestore"
+      @apply="onFilterApply" @cancel="onFilterCancel" />
   </div>
 </template>
 

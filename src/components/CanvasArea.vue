@@ -162,7 +162,7 @@ function triggerDownload(blob, filename) {
     :class="{ dragging, 'tool-eyedropper': tool === 'eyedropper' }"
     @wheel.prevent="onWheel" @mousemove="onMouseMove" @click="onWrapperClick"
     @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-    <div class="positioner" :style="{ width: Math.round(naturalSize.w * zoom) + 'px', height: Math.round(naturalSize.h * zoom) + 'px' }">
+    <div v-show="naturalSize.w > 0" class="positioner" :style="{ width: Math.round(naturalSize.w * zoom) + 'px', height: Math.round(naturalSize.h * zoom) + 'px' }">
       <canvas ref="canvasRef" class="canvas" />
     </div>
     <div v-if="!naturalSize.w" class="hint">

@@ -1,6 +1,6 @@
 <script setup>
 defineProps({ activeTool: String })
-const emit = defineEmits(['update:activeTool', 'levels', 'resize'])
+const emit = defineEmits(['update:activeTool', 'levels', 'resize', 'filter'])
 </script>
 
 <template>
@@ -31,6 +31,20 @@ const emit = defineEmits(['update:activeTool', 'levels', 'resize'])
         <path d="M18 2 L14 6" />
         <path d="M13 15 L13 18 L16 18" />
         <path d="M13 18 L17 14" />
+      </svg>
+    </button>
+
+    <button class="tool-btn" title="Свёртка ядром" @click="emit('filter')">
+      <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.55" stroke="none" />
+        <rect x="8" y="2" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.85" stroke="none" />
+        <rect x="14" y="2" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.55" stroke="none" />
+        <rect x="2" y="8" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.85" stroke="none" />
+        <rect x="8" y="8" width="4" height="4" rx="0.8" fill="currentColor" stroke="none" />
+        <rect x="14" y="8" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.85" stroke="none" />
+        <rect x="2" y="14" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.55" stroke="none" />
+        <rect x="8" y="14" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.85" stroke="none" />
+        <rect x="14" y="14" width="4" height="4" rx="0.8" fill="currentColor" opacity="0.55" stroke="none" />
       </svg>
     </button>
   </div>
