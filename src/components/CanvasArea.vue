@@ -69,7 +69,8 @@ async function loadFile(file) {
   let imageData
   if (ext === 'gb7') {
     imageData = decodeGb7(await file.arrayBuffer())
-    emitMeta(file.name, imageData.width, imageData.height, '7-bit grayscale (GB7)')
+    const depth = detectAlpha(imageData) ? '8-bit' : '7-bit'
+    emitMeta(file.name, imageData.width, imageData.height, `${depth} grayscale (GB7)`)
   } else {
     const bitmap = await createImageBitmap(file)
     const tmp = document.createElement('canvas')
@@ -176,7 +177,17 @@ function triggerDownload(blob, filename) {
 .canvas-wrapper { flex: 1; overflow: auto; background: #353535; display: flex; align-items: center; justify-content: center; position: relative; }
 .canvas-wrapper.dragging { outline: 2px solid #888; outline-offset: -2px; }
 .canvas-wrapper.tool-eyedropper { cursor: crosshair; }
-.positioner { position: relative; flex-shrink: 0; }
+.positioner {
+  position: relative; flex-shrink: 0;
+  background-color: #808080;
+  background-image:
+    linear-gradient(45deg, #666 25%, transparent 25%),
+    linear-gradient(-45deg, #666 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #666 75%),
+    linear-gradient(-45deg, transparent 75%, #666 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
 .canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; border-radius: 2px; box-shadow: 0 4px 20px rgba(0,0,0,.55); }
 .hint { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-lo); font-size: 12px; pointer-events: none; }
 .hint-icon { font-size: 28px; opacity: .35; }
