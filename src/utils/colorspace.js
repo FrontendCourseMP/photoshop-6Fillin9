@@ -28,6 +28,25 @@ export function rgbToLab(r, g, b) {
   }
 }
 
+export function scaleImageData(src, targetW, targetH) {
+  const out = new ImageData(targetW, targetH)
+  const xRatio = src.width / targetW
+  const yRatio = src.height / targetH
+  for (let y = 0; y < targetH; y++) {
+    for (let x = 0; x < targetW; x++) {
+      const srcX = Math.min(Math.floor(x * xRatio), src.width - 1)
+      const srcY = Math.min(Math.floor(y * yRatio), src.height - 1)
+      const si = (srcY * src.width + srcX) * 4
+      const di = (y * targetW + x) * 4
+      out.data[di]     = src.data[si]
+      out.data[di + 1] = src.data[si + 1]
+      out.data[di + 2] = src.data[si + 2]
+      out.data[di + 3] = src.data[si + 3]
+    }
+  }
+  return out
+}
+
 export function createChannelThumbnail(imageData, channelId) {
   const { width: w, height: h, data: src } = imageData
   const out = new Uint8ClampedArray(w * h * 4)
@@ -37,7 +56,7 @@ export function createChannelThumbnail(imageData, channelId) {
     else if (channelId === 'G')    { g = src[i + 1] }
     else if (channelId === 'B')    { b = src[i + 2] }
     else if (channelId === 'A')    { r = g = b = src[i + 3] }
-    else if (channelId === 'Grey') { r = g = b = getLuminance(src[i], src[i + 1], src[i + 2]) }
+    else if (channelId === 'Grey') { r = g = b = src[i] }
     out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = 255
   }
   return new ImageData(out, w, h)

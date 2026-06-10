@@ -32,14 +32,14 @@ function onZoomChange(z) { zoom.value = z }
 function onCursor(pos) { cursor.value = pos }
 function onStatusZoom(z) { canvasArea.value?.setZoom(z) }
 
-function onImageData(id) {
+function onImageData(id, fmt) {
   imageData.value = id; pickedPixel.value = null
-  availableChannels.value = detectChannels(id)
+  availableChannels.value = detectChannels(id, fmt === 'png')
 }
 
-function detectChannels(id) {
+function detectChannels(id, forceAlpha = false) {
   const d = id.data
-  let hasAlpha = false, isGrey = true
+  let hasAlpha = forceAlpha, isGrey = true
   for (let i = 0; i < d.length; i += 4) {
     if (d[i + 3] < 255) hasAlpha = true
     if (d[i] !== d[i + 1] || d[i] !== d[i + 2]) isGrey = false

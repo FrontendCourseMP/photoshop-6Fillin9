@@ -77,12 +77,12 @@ async function loadFile(file) {
     tmp.width = bitmap.width; tmp.height = bitmap.height
     tmp.getContext('2d').drawImage(bitmap, 0, 0); bitmap.close()
     imageData = tmp.getContext('2d').getImageData(0, 0, tmp.width, tmp.height)
-    emitMeta(file.name, imageData.width, imageData.height, detectAlpha(imageData) ? '32-bit RGBA' : '24-bit RGB')
+    emitMeta(file.name, imageData.width, imageData.height, ext === 'png' ? '32-bit RGBA' : '24-bit RGB')
   }
   originalImageData.value = imageData
   viewImageData.value = imageData
   naturalSize.value = { w: imageData.width, h: imageData.height }
-  emit('imagedata', imageData)
+  emit('imagedata', imageData, ext)
   const wrapper = wrapperRef.value
   if (wrapper) {
     const aw = wrapper.clientWidth - 100

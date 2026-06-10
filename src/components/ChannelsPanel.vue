@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
-import { CHANNEL_LABELS, CHANNEL_SHORT, createChannelThumbnail } from '../utils/colorspace.js'
+import { CHANNEL_LABELS, CHANNEL_SHORT, createChannelThumbnail, scaleImageData } from '../utils/colorspace.js'
 
 const props = defineProps({
   imageData: Object,
@@ -45,16 +45,11 @@ function drawThumb(canvas, imageData, channelId) {
   const fh = Math.max(1, Math.round(h * scale))
   const x = Math.round((tw - fw) / 2)
   const y = Math.round((th - fh) / 2)
-  const tmp = document.createElement('canvas')
-  tmp.width = fw
-  tmp.height = fh
-  const tctx = tmp.getContext('2d')
-  const src = document.createElement('canvas')
-  src.width = w
-  src.height = h
-  src.getContext('2d').putImageData(createChannelThumbnail(imageData, channelId), 0, 0)
-  tctx.drawImage(src, 0, 0, fw, fh)
-  canvas.getContext('2d').drawImage(tmp, x, y)
+  // Scale from raw ImageData to preserve RGB values for alpha=0 pixels (GB7 mask)
+  // drawImage through canvas loses RGB for transparent pixels due to premultiplied alpha
+  const scaled = scaleImageData(imageData, fw, fh)
+  const preview = createChannelThumbnail(scaled, channelId)
+  canvas.getContext('2d').putImageData(preview, x, y)
 }
 
 function renderAll(imageData) {
